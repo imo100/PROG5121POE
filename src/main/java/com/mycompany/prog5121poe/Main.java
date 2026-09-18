@@ -46,19 +46,24 @@ public class Main {
             if (user.checkUserName()) {
                 System.out.println("Username successfully captured.");
             } else {
-                System.out.println("Username is not correctly formatted; please ensure that your username contains an underscore and is no more than five characters in length.");
+                System.out.println("Username is not correctly formatted; please"
+                        + " ensure that your username contains an underscore and"
+                        + " is no more than five characters in length.");
             }
             
             if (user.checkPasswordComplexity()) {
                 System.out.println("Password successfully captured.");
             } else {
-                System.out.println("Password is not correctly formatted; please ensure that the password contains at least eight characters, a capital letter, a number, and a special character.");
+                System.out.println("Password is not correctly formatted; please"
+                        + " ensure that the password contains at least eight"
+                        + " characters, a capital letter, a number, and a special character.");
             }
             
             if (user.checkCellPhoneNumber()) {
                 System.out.println("Cell phone number successfully added.");
             } else {
-                System.out.println("Cell phone number incorrectly formatted or does not contain international code.");
+                System.out.println("Cell phone number incorrectly formatted or"
+                        + " does not contain international code.");
             }
             
             // Only allow login if all registration details are valid

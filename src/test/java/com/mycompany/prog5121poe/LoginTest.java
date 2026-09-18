@@ -51,7 +51,10 @@ public class LoginTest {
                 "Password successfully captured.",
                 user.checkPasswordComplexity()
                         ? "Password successfully captured."
-                        : "Password is not correctly formatted; please ensure that the password contains at least eight characters, a capital letter, a number, and a special character."
+                        : "Password is not correctly formatted; please ensure "
+                                + "that the password contains at least eight "
+                                + "characters, a capital letter, a number, and "
+                                + "a special character."
         );
     }
 
@@ -70,10 +73,15 @@ public class LoginTest {
         assertFalse(user.checkPasswordComplexity());
 
         assertEquals(
-                "Password is not correctly formatted; please ensure that the password contains at least eight characters, a capital letter, a number, and a special character.",
+                "Password is not correctly formatted; please ensure that the"
+                        + " password contains at least eight characters, a "
+                        + "capital letter, a number, and a special character.",
                 user.checkPasswordComplexity()
                         ? "Password successfully captured."
-                        : "Password is not correctly formatted; please ensure that the password contains at least eight characters, a capital letter, a number, and a special character."
+                        : "Password is not correctly formatted; please ensure "
+                                + "that the password contains at least eight "
+                                + "characters, a capital letter, a number, and"
+                                + " a special character."
         );
     }
 
@@ -95,7 +103,9 @@ public class LoginTest {
                 "Cell number successfully captured.",
                 user.checkCellPhoneNumber()
                         ? "Cell number successfully captured."
-                        : "Cell number is incorrectly formatted or does not contain an international code; please correct the number and try again."
+                        : "Cell number is incorrectly formatted or does not "
+                                + "contain an international code; please correct"
+                                + " the number and try again."
         );
     }
 
@@ -114,10 +124,13 @@ public class LoginTest {
         assertFalse(user.checkCellPhoneNumber());
 
         assertEquals(
-                "Cell number is incorrectly formatted or does not contain an international code; please correct the number and try again.",
+                "Cell number is incorrectly formatted or does not contain an "
+                        + "international code; please correct the number and try again.",
                 user.checkCellPhoneNumber()
                         ? "Cell number successfully captured."
-                        : "Cell number is incorrectly formatted or does not contain an international code; please correct the number and try again."
+                        : "Cell number is incorrectly formatted or does not"
+                                + " contain an international code; please"
+                                + " correct the number and try again."
         );
     }
 

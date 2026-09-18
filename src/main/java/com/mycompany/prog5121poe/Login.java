@@ -1,12 +1,12 @@
-package prog5121part1;
+package com.mycompany.prog5121poe;
 public class Login {
 
     // User registration details
-    private String firstName;
-    private String lastName;
-    private String username;
-    private String password;
-    private String cellPhoneNumber;
+    private final String firstName;
+    private final String lastName;
+    private final String username;
+    private final String password;
+    private final String cellPhoneNumber;
 
     // Stores whether the login was successful
     private boolean loginSuccessful;

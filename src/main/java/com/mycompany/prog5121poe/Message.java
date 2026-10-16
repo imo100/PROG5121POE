@@ -1,10 +1,8 @@
-package com.mycompany.prog5121poe;
+
+package prog5121part1;
 
 import java.util.Locale;
 
-/**
- * Represents a message created in QuickChat.
- */
 public final class Message {
 
     private final String messageID;
@@ -35,7 +33,9 @@ public final class Message {
             return "Cell phone number successfully captured.";
         }
 
-        return "Cell phone number is incorrectly formatted or does not contain an international code. Please correct the number and try again.";
+        return "Cell phone number is incorrectly formatted or does not "
+                + "contain an international code. Please correct the "
+                + "number and try again.";
     }
 
     public boolean checkMessageLength() {
@@ -44,7 +44,7 @@ public final class Message {
 
     public String getMessageLengthMessage() {
         if (message == null) {
-            return "Please enter a message.";
+            return "Please enter a message of less than 250 characters.";
         }
 
         if (message.length() > 250) {
@@ -56,52 +56,40 @@ public final class Message {
         return "Message ready to send.";
     }
 
-    /**
-     * Hash format: first two ID digits:message number:first and last words.
-     * Example: 00:0:HITONIGHT
-     * @return 
-     */
     public String createMessageHash() {
-        if (messageID == null || messageID.length() < 2
-                || message == null || message.trim().isEmpty()) {
-            return "";
+        String firstTwoIDDigits = messageID.substring(0, 2);
+
+        String trimmedMessage = message == null ? "" : message.trim();
+
+        if (trimmedMessage.isEmpty()) {
+            return firstTwoIDDigits + ":" + messageNumber + ":";
         }
 
-        String[] words = message.trim().split("\\s+");
-        String firstWord = words[0].replaceAll("[^a-zA-Z0-9]", "");
-        String lastWord = words[words.length - 1]
-                .replaceAll("[^a-zA-Z0-9]", "");
+        String[] words = trimmedMessage.split("\\s+");
 
-        return messageID.substring(0, 2)
-                + ":" + messageNumber
-                + ":" + (firstWord + lastWord).toUpperCase(Locale.ROOT);
+        String firstWord = words[0].replaceAll(
+                "^[^a-zA-Z0-9]+|[^a-zA-Z0-9]+$", "");
+
+        String lastWord = words[words.length - 1].replaceAll(
+                "^[^a-zA-Z0-9]+|[^a-zA-Z0-9]+$", "");
+
+        return (firstTwoIDDigits + ":" + messageNumber + ":"
+                + firstWord + lastWord).toUpperCase(Locale.ROOT);
     }
 
-    /**
-     * Records the user's choice for the message.
-     * @param choice
-     * @return 
-     */
     public String SentMessage(int choice) {
         switch (choice) {
-            case 1 -> {
+            case 1:
                 flag = "Sent";
                 return "Message successfully sent.";
-            }
-
-            case 2 -> {
+            case 2:
                 flag = "Disregarded";
                 return "Press 0 to delete the message.";
-            }
-
-            case 3 -> {
+            case 3:
                 flag = "Stored";
                 return "Message successfully stored.";
-            }
-
-            default -> {
-                return "Invalid message option.";
-            }
+            default:
+                return "Invalid option.";
         }
     }
 
@@ -109,7 +97,12 @@ public final class Message {
         return "Message ID: " + messageID
                 + "\nMessage Hash: " + messageHash
                 + "\nRecipient: " + recipient
-                + "\nMessage: " + message;
+                + "\nMessage: " + message
+                + "\nStatus: " + flag;
+    }
+
+    public int returnTotalMessagess() {
+        return "Sent".equals(flag) ? 1 : 0;
     }
 
     public String getMessageID() {
@@ -134,9 +127,5 @@ public final class Message {
 
     public String getFlag() {
         return flag;
-    }
-
-    public void setFlag(String flag) {
-        this.flag = flag;
     }
 }

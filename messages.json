@@ -1,0 +1,10 @@
+[
+  {
+    "messageID": "0012345678",
+    "messageNumber": 0,
+    "recipient": "+27718693002",
+    "message": "Hi Mike, can you join us for dinner tonight?",
+    "messageHash": "00:0:HITONIGHT",
+    "flag": "Stored"
+  }
+]

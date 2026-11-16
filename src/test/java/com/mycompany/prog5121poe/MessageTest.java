@@ -1,6 +1,7 @@
 package com.mycompany.prog5121poe;
 
 import static org.junit.Assert.*;
+import java.io.File;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -15,6 +16,11 @@ public class MessageTest {
     @Before
     public void setUp() {
         Message.resetAll();
+
+        // Use a separate JSON file so the real messages.json is not touched
+        Message.setStorageFile("target/test-messages.json");
+        new File("target/test-messages.json").delete();
+
         // Test message 1: valid number, will be sent
         msg1 = new Message("0012345678", 0, "+27718693002",
                 "Hi Mike, can you join us for dinner tonight?");
@@ -75,6 +81,20 @@ public class MessageTest {
         assertEquals("Message ID generated: " + id, m.getMessageIDResult());
     }
 
+    // An ID with fewer than ten digits must be rejected
+    @Test
+    public void messageIDTooShort() {
+        Message m = new Message("123456789", 0, "+27718693002", "Hello there");
+        assertFalse(m.checkMessageID());
+    }
+
+    // An ID with more than ten digits must be rejected
+    @Test
+    public void messageIDTooLong() {
+        Message m = new Message("12345678901", 0, "+27718693002", "Hello there");
+        assertFalse(m.checkMessageID());
+    }
+
     // Choice 1 = send
     @Test
     public void sendMessage() {
@@ -85,6 +105,14 @@ public class MessageTest {
     @Test
     public void disregardMessage() {
         assertEquals("Press 0 to delete the message.", msg2.SentMessage(2));
+    }
+
+    // Pressing 0 after Disregard marks the message as Deleted
+    @Test
+    public void deleteMessageSetsState() {
+        msg2.SentMessage(2);
+        assertEquals("Message deleted.", msg2.deleteMessage());
+        assertEquals("Deleted", msg2.getFlag());
     }
 
     // Choice 3 = store to send later

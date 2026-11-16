@@ -96,7 +96,7 @@ public class QuickChat {
         if (choice == 2) {
             // Disregarded messages are deleted when the user presses 0
             int zero = readInt(scanner, "", 0);
-            if (zero == 0) System.out.println("Message deleted.");
+            if (zero == 0) System.out.println(msg.deleteMessage());
         } else if (choice == 1) {
             // Show the full details of a sent message
             System.out.println(msg.printMessage());

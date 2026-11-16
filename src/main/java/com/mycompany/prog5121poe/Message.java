@@ -2,8 +2,13 @@ package com.mycompany.prog5121poe;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import com.google.gson.JsonSyntaxException;
+import com.google.gson.reflect.TypeToken;
+import java.io.File;
+import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
@@ -18,18 +23,18 @@ public final class Message {
     // Messages sent while the program is running
     private static final List<Message> sentMessages = new ArrayList<>();
 
-    // Messages stored to send later (also written to the JSON file)
+    // Messages stored to send later in this run
     private static final List<Message> storedMessages = new ArrayList<>();
 
-    // File the stored messages are saved to
-    private static final String STORAGE_FILE = "messages.json";
+    // File the stored messages are saved to (tests can change it)
+    private static String storageFile = "messages.json";
 
     private final String messageID;      // ten-digit unique ID
     private final int messageNumber;     // number of the message (loop counter)
     private final String recipient;      // recipient cell number
     private final String message;        // the message text
     private final String messageHash;    // e.g. 00:0:HITONIGHT
-    private String flag;                 // Pending, Sent, Disregarded or Stored
+    private String flag;                 // Pending, Sent, Disregarded, Stored or Deleted
 
     /**
      * Creates a message and generates its hash.
@@ -63,7 +68,8 @@ public final class Message {
     }
 
     /**
-     * Checks that the message ID is exactly ten digits.
+     * Checks that the message ID is exactly ten digits
+     * (fewer or more than ten digits is rejected).
      *
      * @return true if the ID is valid
      */
@@ -184,6 +190,19 @@ public final class Message {
     }
 
     /**
+     * Deletes the message: sets its state to Deleted and removes it from
+     * the sent and stored lists.
+     *
+     * @return the delete confirmation message
+     */
+    public String deleteMessage() {
+        flag = "Deleted";
+        sentMessages.remove(this);
+        storedMessages.remove(this);
+        return "Message deleted.";
+    }
+
+    /**
      * Returns the details of this message in the required order:
      * ID, Hash, Recipient, Message.
      *
@@ -218,20 +237,50 @@ public final class Message {
         return sentMessages.size();
     }
 
+    /** Lets the unit tests use their own JSON file. */
+    public static void setStorageFile(String path) {
+        storageFile = path;
+    }
+
     /**
-     * Saves all stored messages to messages.json.
+     * Adds this message to the JSON file, keeping any messages already in
+     * it. If the file is empty or contains invalid JSON, a new list is started.
      * Source: Google (n.d.) Gson User Guide. Available at:
-     * https://github.com/google/gson (Accessed: 17 October 2026).
+     * https://github.com/google/gson (Accessed: 18 October 2026).
      */
     public void storeMessage() {
+        Gson gson = new GsonBuilder().setPrettyPrinting().create();
+
+        // Read what is already in the file, then add this message
+        List<Message> all = loadStoredMessages(gson);
+        all.add(this);
         storedMessages.add(this);
 
-        // Gson converts the list of Message objects into JSON text
-        Gson gson = new GsonBuilder().setPrettyPrinting().create();
-        try (FileWriter writer = new FileWriter(STORAGE_FILE)) {
-            gson.toJson(storedMessages, writer);
+        try (FileWriter writer = new FileWriter(storageFile)) {
+            gson.toJson(all, writer);
         } catch (IOException e) {
             System.out.println("Could not store message: " + e.getMessage());
+        }
+    }
+
+    /**
+     * Reads the messages already saved in the JSON file.
+     *
+     * @return the saved messages, or an empty list if the file is missing,
+     *         empty or invalid
+     */
+    private static List<Message> loadStoredMessages(Gson gson) {
+        File file = new File(storageFile);
+        if (!file.exists() || file.length() == 0) {
+            return new ArrayList<>();
+        }
+        try (FileReader reader = new FileReader(file)) {
+            Type type = new TypeToken<List<Message>>() { }.getType();
+            List<Message> existing = gson.fromJson(reader, type);
+            return existing == null ? new ArrayList<>() : existing;
+        } catch (IOException | JsonSyntaxException e) {
+            System.out.println("Existing JSON was invalid; starting a new file.");
+            return new ArrayList<>();
         }
     }
 
@@ -241,7 +290,7 @@ public final class Message {
         storedMessages.clear();
     }
 
-    // this is the Getters and setter
+    // Getters and setter
     public String getMessageID() { return messageID; }
     public int getMessageNumber() { return messageNumber; }
     public String getRecipient() { return recipient; }

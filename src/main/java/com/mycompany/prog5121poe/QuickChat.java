@@ -1,28 +1,26 @@
 package com.mycompany.prog5121poe;
 
+import java.util.List;
 import java.util.Scanner;
 
-/**
- * Runs the QuickChat menu after a user has logged in successfully.
- */
+// This class runs the QuickChat menu once the user has logged in
 public class QuickChat {
 
-    /**
-     * Shows the welcome message and the main menu. The while loop keeps
-     * the application running until the user chooses to quit.
-     *
-     * @param scanner the shared Scanner used for all user input
-     */
-    public static void start(Scanner scanner) {
+    public static void start(Scanner scanner, String senderName) {
         System.out.println("Welcome to QuickChat.");
 
-        // The user decides at the start how many messages they may enter
-        int limit = readInt(scanner, "How many messages do you wish to enter? ", 1);
-        boolean messagesEntered = false;  // true once all messages are entered
-        boolean running = true;           // the while loop runs until Quit
+        // load the stored messages from the JSON file into the arrays and show them
+        MessageStore.loadStoredMessages();
+        System.out.println(MessageStore.displayStoredMessages());
 
+        // the user decides how many messages they want to enter
+        int limit = readInt(scanner, "How many messages do you wish to enter? ", 1);
+        boolean messagesEntered = false;
+        boolean running = true;
+
+        // this while loop keeps the menu going until the user picks Quit
         while (running) {
-            System.out.println("\n1) Send Messages\n2) Show recently sent messages\n3) Quit");
+            System.out.println("\n1) Send Messages\n2) Show recently sent messages\n3) Quit\n4) Stored Messages");
             int option = readInt(scanner, "Choose an option: ", 1);
 
             switch (option) {
@@ -31,8 +29,7 @@ public class QuickChat {
                         System.out.println("You have already entered all "
                                 + limit + " messages.");
                     } else {
-                        // For loop: runs exactly as many times as the user chose.
-                        // The loop counter i is the message number (starts at 0).
+                        // the for loop runs once for each message, and i is the message number
                         for (int i = 0; i < limit; i++) {
                             System.out.println("\nMessage " + (i + 1) + " of " + limit);
                             createAndHandleMessage(scanner, i);
@@ -42,29 +39,71 @@ public class QuickChat {
                                 + Message.returnTotalMessages());
                     }
                 }
-                // Feature still in development
                 case 2 -> System.out.println("Coming Soon.");
                 case 3 -> {
                     System.out.println("Goodbye.");
                     running = false;
                 }
+                case 4 -> storedMessagesMenu(scanner, senderName);
                 default -> System.out.println("Invalid option.");
             }
         }
     }
 
-    /**
-     * Collects one message from the user, validates it, and lets them
-     * send, disregard or store it.
-     *
-     * @param scanner the shared Scanner
-     * @param number  the message number (the for loop counter)
-     */
+    // the menu for the stored messages option
+    private static void storedMessagesMenu(Scanner scanner, String senderName) {
+        boolean back = false;
+        while (!back) {
+            System.out.println("\nSTORED MESSAGES");
+            System.out.println("1) Display sender and recipient of all stored messages");
+            System.out.println("2) Display the longest stored message");
+            System.out.println("3) Search for a message ID");
+            System.out.println("4) Search for all messages for a recipient");
+            System.out.println("5) Delete a message using its hash");
+            System.out.println("6) Display a report of all stored messages");
+            System.out.println("0) Back");
+            int choice = readInt(scanner, "Choose an option: ", 0);
+
+            switch (choice) {
+                case 1 -> System.out.println(MessageStore.displaySenderAndRecipient(senderName));
+                case 2 -> System.out.println(MessageStore.longestStoredMessage());
+                case 3 -> {
+                    System.out.print("Enter the message ID: ");
+                    Message found = MessageStore.findMessageByID(scanner.nextLine().trim());
+                    if (found == null) {
+                        System.out.println("Message ID not found.");
+                    } else {
+                        System.out.println("Recipient: " + found.getRecipient());
+                        System.out.println("Message: " + found.getMessage());
+                    }
+                }
+                case 4 -> {
+                    System.out.print("Enter the recipient number: ");
+                    List<String> results = MessageStore.searchByRecipient(scanner.nextLine().trim());
+                    if (results.isEmpty()) {
+                        System.out.println("No messages found for that recipient.");
+                    } else {
+                        for (String text : results) {
+                            System.out.println(text);
+                        }
+                    }
+                }
+                case 5 -> {
+                    System.out.print("Enter the message hash: ");
+                    System.out.println(MessageStore.deleteByHash(scanner.nextLine().trim()));
+                }
+                case 6 -> System.out.println(MessageStore.generateReport("Stored"));
+                case 0 -> back = true;
+                default -> System.out.println("Invalid option.");
+            }
+        }
+    }
+
+    // asks for one message, checks it, then lets the user send, disregard or store it
     private static void createAndHandleMessage(Scanner scanner, int number) {
-        // Generate a random ten-digit ID for this message
         String id = Message.generateMessageID();
 
-        // Keep asking until the recipient number is valid
+        // keep asking until the number is valid
         String recipient;
         while (true) {
             System.out.print("Recipient cell number: ");
@@ -74,7 +113,7 @@ public class QuickChat {
             if (result.startsWith("Cell phone number successfully")) break;
         }
 
-        // Keep asking until the message is 250 characters or fewer
+        // keep asking until the message is 250 characters or less
         String text;
         while (true) {
             System.out.print("Message: ");
@@ -86,31 +125,28 @@ public class QuickChat {
             System.out.println("Please enter a message of less than 250 characters.");
         }
 
-        // Build the final message and ask what to do with it
         Message msg = new Message(id, number, recipient, text);
 
         System.out.println("1) Send Message  2) Disregard Message  3) Store Message to send later");
         int choice = readInt(scanner, "Choose: ", 1);
         System.out.println(msg.SentMessage(choice));
 
+        // save the message in the arrays (sent, disregarded or stored)
+        if (choice >= 1 && choice <= 3) {
+            MessageStore.addMessage(msg);
+        }
+
         if (choice == 2) {
-            // Disregarded messages are deleted when the user presses 0
+            // the message only gets deleted when the user presses 0
             int zero = readInt(scanner, "", 0);
             if (zero == 0) System.out.println(msg.deleteMessage());
         } else if (choice == 1) {
-            // Show the full details of a sent message
+            // show the full details of the message that was sent
             System.out.println(msg.printMessage());
         }
     }
 
-    /**
-     * Reads a whole number, repeating until it is valid and at least min.
-     *
-     * @param scanner the shared Scanner
-     * @param prompt  the text shown to the user
-     * @param min     the smallest accepted value
-     * @return the valid number entered
-     */
+    // keeps asking until the user types a whole number that is at least min
     private static int readInt(Scanner scanner, String prompt, int min) {
         while (true) {
             System.out.print(prompt);
@@ -118,7 +154,7 @@ public class QuickChat {
                 int value = Integer.parseInt(scanner.nextLine().trim());
                 if (value >= min) return value;
             } catch (NumberFormatException ignored) {
-                // Not a number: fall through and ask again
+                // not a number, so just ask again
             }
             System.out.println("Please enter a valid number.");
         }

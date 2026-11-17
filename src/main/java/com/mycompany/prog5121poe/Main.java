@@ -91,7 +91,7 @@ public class Main {
                 // Only logged-in users may use QuickChat
                 if (loggedIn) {
                     System.out.println();
-                    QuickChat.start(input);
+                    QuickChat.start(input, firstName + " " + lastName);
                 }
 
             } else {

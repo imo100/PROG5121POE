@@ -14,36 +14,25 @@ import java.util.List;
 import java.util.Locale;
 import java.util.concurrent.ThreadLocalRandom;
 
-/**
- * Represents one message in QuickChat. Validates the recipient and message
- * length, builds the message ID and hash, and tracks sent and stored messages.
- */
+// This class stores one message and does all the checks on it
 public final class Message {
 
-    // Messages sent while the program is running
+    // keeps every message that was sent while the program is running
     private static final List<Message> sentMessages = new ArrayList<>();
 
-    // Messages stored to send later in this run
+    // keeps every message that was stored in this run
     private static final List<Message> storedMessages = new ArrayList<>();
 
-    // File the stored messages are saved to (tests can change it)
+    // the JSON file the stored messages get saved to
     private static String storageFile = "messages.json";
 
-    private final String messageID;      // ten-digit unique ID
-    private final int messageNumber;     // number of the message (loop counter)
-    private final String recipient;      // recipient cell number
-    private final String message;        // the message text
-    private final String messageHash;    // e.g. 00:0:HITONIGHT
-    private String flag;                 // Pending, Sent, Disregarded, Stored or Deleted
+    private final String messageID;
+    private final int messageNumber;
+    private final String recipient;
+    private final String message;
+    private final String messageHash;
+    private String flag;    // Pending, Sent, Disregarded, Stored or Deleted
 
-    /**
-     * Creates a message and generates its hash.
-     *
-     * @param messageID     the ten-digit message ID
-     * @param messageNumber the message number
-     * @param recipient     the recipient's cell number
-     * @param message       the message text
-     */
     public Message(String messageID, int messageNumber,
                    String recipient, String message) {
         this.messageID = messageID;
@@ -54,11 +43,7 @@ public final class Message {
         this.flag = "Pending";
     }
 
-    /**
-     * Builds a random ten-digit message ID, adding one digit per loop pass.
-     *
-     * @return the ten-digit ID as a String
-     */
+    // makes a random 10 digit ID by adding one random digit each time the loop runs
     public static String generateMessageID() {
         StringBuilder id = new StringBuilder();
         for (int i = 0; i < 10; i++) {
@@ -67,32 +52,18 @@ public final class Message {
         return id.toString();
     }
 
-    /**
-     * Checks that the message ID is exactly ten digits
-     * (fewer or more than ten digits is rejected).
-     *
-     * @return true if the ID is valid
-     */
+    // the ID is only valid if it is exactly 10 digits
     public boolean checkMessageID() {
         return messageID != null && messageID.matches("[0-9]{10}");
     }
 
-    /**
-     * Returns the message shown when an ID has been created.
-     *
-     * @return "Message ID generated: ID" or an error message
-     */
     public String getMessageIDResult() {
         return checkMessageID()
                 ? "Message ID generated: " + messageID
                 : "Message ID is invalid.";
     }
 
-    /**
-     * Checks that the recipient starts with +27 followed by nine digits.
-     *
-     * @return a success message or an error message
-     */
+    // the number must start with +27 and have 9 more digits after it
     public String checkRecipientCell() {
         if (recipient != null && recipient.matches("^\\+27[0-9]{9}$")) {
             return "Cell phone number successfully captured.";
@@ -102,21 +73,12 @@ public final class Message {
                 + "number and try again.";
     }
 
-    /**
-     * Checks that the message is no longer than 250 characters.
-     *
-     * @return true if the message length is valid
-     */
+    // the message can't be longer than 250 characters
     public boolean checkMessageLength() {
         return message != null && message.length() <= 250;
     }
 
-    /**
-     * Returns the length result message, including by how much the
-     * message is too long.
-     *
-     * @return a success or failure message
-     */
+    // tells the user if the message is fine or how many characters it is over by
     public String getMessageLengthMessage() {
         if (message == null) {
             return "Please enter a message of less than 250 characters.";
@@ -129,18 +91,13 @@ public final class Message {
         return "Message ready to send.";
     }
 
-    /**
-     * Creates the message hash: first two ID digits, message number,
-     * then the first and last words in capitals (e.g. 00:0:HITONIGHT).
-     *
-     * @return the message hash
-     */
+    // builds the hash, for example 00:0:HITONIGHT
     public String createMessageHash() {
         if (messageID == null || messageID.length() < 2) {
             return "";
         }
 
-        // First two digits of the ID
+        // first two digits of the ID
         String firstTwoIDDigits = messageID.substring(0, 2);
         String trimmedMessage = message == null ? "" : message.trim();
 
@@ -148,10 +105,10 @@ public final class Message {
             return firstTwoIDDigits + ":" + messageNumber + ":";
         }
 
-        // Split the message into words, then take the first and last
+        // split the message into words so I can get the first and last one
         String[] words = trimmedMessage.split("\\s+");
 
-        // Remove punctuation from the start and end of each word
+        // take away any punctuation like commas and question marks
         String firstWord = words[0].replaceAll(
                 "^[^a-zA-Z0-9]+|[^a-zA-Z0-9]+$", "");
         String lastWord = words[words.length - 1].replaceAll(
@@ -161,12 +118,7 @@ public final class Message {
                 + firstWord + lastWord).toUpperCase(Locale.ROOT);
     }
 
-    /**
-     * Applies the user's choice to the message.
-     *
-     * @param choice 1 = send, 2 = disregard, 3 = store to send later
-     * @return the confirmation message for that choice
-     */
+    // 1 = send, 2 = disregard, 3 = store the message for later
     public String SentMessage(int choice) {
         switch (choice) {
             case 1 -> {
@@ -189,12 +141,7 @@ public final class Message {
         }
     }
 
-    /**
-     * Deletes the message: sets its state to Deleted and removes it from
-     * the sent and stored lists.
-     *
-     * @return the delete confirmation message
-     */
+    // marks the message as deleted and takes it out of the lists
     public String deleteMessage() {
         flag = "Deleted";
         sentMessages.remove(this);
@@ -202,12 +149,7 @@ public final class Message {
         return "Message deleted.";
     }
 
-    /**
-     * Returns the details of this message in the required order:
-     * ID, Hash, Recipient, Message.
-     *
-     * @return the formatted message details
-     */
+    // shows one message in the order ID, hash, recipient, message
     public String printMessage() {
         return "Message ID: " + messageID
                 + "\nMessage Hash: " + messageHash
@@ -215,11 +157,7 @@ public final class Message {
                 + "\nMessage: " + message;
     }
 
-    /**
-     * Returns the details of all messages sent while the program runs.
-     *
-     * @return all sent messages, separated by blank lines
-     */
+    // shows all the messages that were sent
     public static String printMessages() {
         StringBuilder sb = new StringBuilder();
         for (Message m : sentMessages) {
@@ -228,30 +166,26 @@ public final class Message {
         return sb.toString().trim();
     }
 
-    /**
-     * Returns the total number of messages sent.
-     *
-     * @return the number of sent messages
-     */
+    // how many messages have been sent so far
     public static int returnTotalMessages() {
         return sentMessages.size();
     }
 
-    /** Lets the unit tests use their own JSON file. */
+    // the unit tests use this so they don't change the real JSON file
     public static void setStorageFile(String path) {
         storageFile = path;
     }
 
-    /**
-     * Adds this message to the JSON file, keeping any messages already in
-     * it. If the file is empty or contains invalid JSON, a new list is started.
-     * Source: Google (n.d.) Gson User Guide. Available at:
-     * https://github.com/google/gson (Accessed: 18 October 2026).
-     */
+    public static String getStorageFile() {
+        return storageFile;
+    }
+
+    // saves the message to the JSON file and keeps the ones already in there
+    // Source: Google (n.d.) Gson User Guide, https://github.com/google/gson
     public void storeMessage() {
         Gson gson = new GsonBuilder().setPrettyPrinting().create();
 
-        // Read what is already in the file, then add this message
+        // read the old messages first so they don't get overwritten
         List<Message> all = loadStoredMessages(gson);
         all.add(this);
         storedMessages.add(this);
@@ -263,12 +197,8 @@ public final class Message {
         }
     }
 
-    /**
-     * Reads the messages already saved in the JSON file.
-     *
-     * @return the saved messages, or an empty list if the file is missing,
-     *         empty or invalid
-     */
+    // reads the JSON file, or gives back an empty list if the file is missing,
+    // empty or has bad JSON in it
     private static List<Message> loadStoredMessages(Gson gson) {
         File file = new File(storageFile);
         if (!file.exists() || file.length() == 0) {
@@ -284,13 +214,12 @@ public final class Message {
         }
     }
 
-    /** Clears the sent and stored lists (used by the unit tests). */
+    // clears the lists, only used in the unit tests
     public static void resetAll() {
         sentMessages.clear();
         storedMessages.clear();
     }
 
-    // Getters and setter
     public String getMessageID() { return messageID; }
     public int getMessageNumber() { return messageNumber; }
     public String getRecipient() { return recipient; }
